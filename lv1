@@ -1,0 +1,57 @@
+""""
+PRVI
+print("Unesite sate:")
+rs=float(input())
+
+print("eura/h:")
+p=float(input())
+
+def total_euro(p,rs):
+    return print("Ukupno: ", rs* p)
+total_euro(p,rs)
+"""
+
+"""
+DRUGI
+print("Unesite ocjenu izmedu 0.0 i 1.0")
+o=float(input())
+try:
+    if o < 0.0:
+         print("Unesite broj izmedu 0.0 i 1.0")
+    elif o > 1.0:
+         print("Unesite broj izmedu 0.0 i 1.0")
+    elif o >= 0.9:
+        print("A")
+    elif o >= 0.8:
+        print("B")
+    elif o >= 0.7:
+        print("C")
+    elif o >= 0.6:
+        print("D")
+    elif o < 0.6:
+            print("F")
+except (ValueError):
+    print("GRESKA")
+
+"""
+"""
+TRECI
+list = []
+sv = float(0)
+k = 0
+print("Unesite brojeve")
+i = 0
+while (i == 0):
+    novi = float(input("Unesi broj: "))
+    if novi == "Done" :
+        i=1
+        print("Kraj")
+    else:
+        list.append(novi)
+        k = k+1
+        sv = sv + novi
+
+print(list)
+print("Srednja vrijednost je:",sv/k )
+print("Duzina liste je:", len(list))
+"""
