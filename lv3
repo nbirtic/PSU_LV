@@ -1,0 +1,37 @@
+PRVI
+import pandas as pd
+import numpy as np
+mtcars = pd.read_csv('mtcars.csv')
+mtcars.sort_values(by=['mpg'], inplace = True)
+print("\nNajveca potrosnja: ")
+print(mtcars.tail(5))
+print("\nNajmanja potrosnja 8 cilindara: ")
+print(mtcars[(mtcars.cyl == 8)].head(3))
+print("\nSrednja potrosnja 6 cilindara: ")
+print(mtcars[(mtcars.cyl == 6)]['mpg'].mean())
+print("\nSrednja potrosnja 4 cilindara izmedu 2000 i 2200lb: ")
+print(mtcars[((mtcars.wt >= 2.0) & (mtcars.wt <= 2.2))]['wt'].mean())
+print("\nKolicina rucnih ")
+print(mtcars[mtcars.am == 1])
+print("\nKolicina automatika ")
+print(mtcars[mtcars.am == 0])
+print("\nAutomatski mjenjac i preko 100hp: ")
+print(mtcars[((mtcars.am == 0) & (mtcars.hp >= 100))])
+print("\nMasa svakog automobila u kg: ")
+print(mtcars['wt']* 454.5)
+
+DRUGI
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+import seaborn as sns
+
+mtcars = pd.read_csv('mtcars.csv')
+
+plt.figure(figsize = (10,6))
+sns.barplot(x='cyl', y='mpg', data = mtcars, ci = None, palette='viridis')
+sns.boxplot(x='cyl',y='mpg',data=mtcars)
+plt.title('Prosjecna potrosnja automobila s 4,6 i 8 cilindara')
+plt.xlabel('Broj cilindara')
+plt.ylabel('Prosjecna potrosnja u mpg')
+plt.show()'
