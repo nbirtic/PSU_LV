@@ -1,0 +1,161 @@
+ZADATAK 1
+import pandas as pd
+import matplotlib.pyplot as plt
+
+data = pd.read_csv('occupancy_processed.csv')
+
+print(data.head())
+
+plt.figure(figsize=(8, 6))
+plt.scatter(data['S3_Temp'], data['S5_CO2'], c=data['Room_Occupancy_Count'], cmap='coolwarm', alpha=0.7)
+plt.title('Dijagram raspršenja: S3_Temp vs S5_CO2')
+plt.xlabel('Temperatura (S3_Temp)')
+plt.ylabel('CO2 (S5_CO2)')
+plt.colorbar(label='Zauzetost prostorije (0 = prazno, 1 = zauzeto)')
+plt.show()
+
+ZADATAK 2
+a)
+import pandas as pd
+
+data = pd.read_csv('occupancy_processed.csv')
+
+X = data[['S3_Temp', 'S5_CO2']]
+y = data['Room_Occupancy_Count']
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+
+print(f"Broj podataka u skupu za učenje: {len(X_train)}")
+print(f"Broj podataka u skupu za testiranje: {len(X_test)}")
+
+b)
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+
+X_train_scaled = scaler.fit_transform(X_train)
+
+X_test_scaled = scaler.transform(X_test)
+
+c)
+from sklearn.neighbors import KNeighborsClassifier
+
+knn = KNeighborsClassifier(n_neighbors=5)
+
+knn.fit(X_train_scaled, y_train)
+
+d)
+a)
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+y_pred = knn.predict(X_test_scaled)
+
+cm = confusion_matrix(y_test, y_pred)
+
+plt.figure(figsize=(6, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=[0, 1], yticklabels=[0, 1])
+plt.title('Matrica zabune')
+plt.xlabel('Predikcije')
+plt.ylabel('Stvarne vrijednosti')
+plt.show()
+
+b)
+from sklearn.metrics import accuracy_score
+
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Točnost klasifikacije: {accuracy:.2f}")
+
+c)
+from sklearn.metrics import classification_report
+
+report = classification_report(y_test, y_pred)
+print(report)
+
+e)
+Manji broj susjeda može povećati osjetljivost na šum u podacima (prekomjerno učenje, tj. overfitting).
+
+Veći broj susjeda može smanjiti osjetljivost na šum, ali može i smanjiti preciznost modela na specifičnim obrascima (previše underfitting).
+
+f)
+Bez skaliranja, varijable koje imaju različite raspona vrijednosti (npr. temperatura i CO2) mogu dominirati u izračunu udaljenosti između točaka. Kao rezultat toga, model može dati lošije rezultate jer udaljenosti neće biti ravnomjerno izračunate.
+
+Skaliranje osigurava da obje varijable (temperatura i CO2) imaju sličan raspon vrijednosti, što omogućava modelu da pravilno izračuna udaljenosti i donosi točnije odluke.
+
+ZADATAK 3
+a) Vizualizacija dobivenog stabla odlučivanja:
+Vizualizacija stabla odlučivanja može izgledati kao hijerarhijska struktura, gdje se na svakom čvoru nalazi uvjet koji dijeli podatke, a listovi predstavljaju odluke (klase 0 ili 1). Slika će biti generirana pomoću plot_tree funkcije i prikazivat će se kao grafikon.
+
+b) Što se događa s rezultatima ako mijenjate parametar max_depth stabla odlučivanja?
+Manji max_depth (npr. 2) može rezultirati jednostavnijim modelom koji ne prepoznaje sve složenosti u podacima, što može smanjiti točnost.
+
+Veći max_depth omogućuje modelu da nauči detaljnije uvjete, ali može dovesti do overfittinga (pretreniranja) na trening setu, što može smanjiti generalizaciju modela na testnom skupu.
+
+c) Što se događa s rezultatima ako ne koristite skaliranje ulaznih veličina?
+U većini slučajeva, stablo odlučivanja nije jako osjetljivo na skaliranje podataka jer koristi pravila bazirana na usporedbama (manje je pod utjecajem razlika u skali). Ipak, u nekim slučajevima, skaliranje može utjecati na performanse, pogotovo kada koristite druge modele koji su osjetljiviji na razlike u skali (kao što je KNN).
+
+ZADATAK 4
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+from sklearn.preprocessing import StandardScaler
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+data = pd.read_csv('occupancy_processed.csv')
+
+X = data[['S3_Temp', 'S5_CO2']]
+y = data['Room_Occupancy_Count']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+
+scaler = StandardScaler()
+
+X_train_scaled = scaler.fit_transform(X_train)
+
+X_test_scaled = scaler.transform(X_test)
+
+logreg = LogisticRegression(random_state=42)
+
+logreg.fit(X_train_scaled, y_train)
+
+y_pred = logreg.predict(X_test_scaled)
+
+cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(6, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=[0, 1], yticklabels=[0, 1])
+plt.title('Matrica zabune')
+plt.xlabel('Predikcije')
+plt.ylabel('Stvarne vrijednosti')
+plt.show()
+
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Točnost klasifikacije: {accuracy:.2f}")
+
+report = classification_report(y_test, y_pred)
+print(report)
+
+logreg_no_scaling = LogisticRegression(random_state=42)
+logreg_no_scaling.fit(X_train, y_train)
+y_pred_no_scaling = logreg_no_scaling.predict(X_test)
+
+accuracy_no_scaling = accuracy_score(y_test, y_pred_no_scaling)
+print(f"Točnost bez skaliranja: {accuracy_no_scaling:.2f}")
+
+
+
+
+Što primjećujete kod vrednovanja ovog modela?
+Točnost: Logistička regresija može imati dobru točnost, ali ovisi o karakteristikama podataka. Ako su podaci linearnije razdvojeni, logistička regresija može vrlo dobro raditi, jer je ovaj model osjetljiv na linearnu povezanost između ulaznih varijabli i izlazne varijable.
+
+Preciznost i odziv: Ovisno o distribuciji klasa (ako je data skup neravnotežena), preciznost i odziv mogu biti značajno različiti za svaku klasu. Ako je jedan razred dominantan (npr. više podataka za 0 – praznu sobu), model može biti skloniji klasificirati podatke u dominantnu klasu (0). To se može smanjiti korištenjem ponderiranih modela ili balansiranjem klasa.
+
+Uzrok dobivenih rezultata:
+Neravnoteža u klasama: Ako postoji neravnoteža u podacima, gdje je više podataka za jednu klasu (npr. veći broj praznih soba nego zauzetih), logistička regresija može imati smanjenu preciznost u klasifikaciji manjinske klase. To može uzrokovati da model "prepozna" dominantnu klasu bolje od manjinske klase.
+
+Ne-linearno odvajanje podataka: Logistička regresija pretpostavlja da je granica odluke između klasa linearna. Ako podaci nisu linearno odvojivi, rezultati mogu biti loši jer ovaj model ne može pravilno uhvatiti složenost u podacima.
+
+Skaliranje podataka: Logistička regresija može biti osjetljivija na neiskalirane podatke, jer različite skale varijabli mogu uzrokovati da model teži jednoj varijabli više nego drugoj. Skaliranjem podataka povećava se učinkovitost modela, jer sve varijable imaju istu važnost.
