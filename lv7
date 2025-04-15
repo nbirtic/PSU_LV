@@ -1,0 +1,76 @@
+iimport numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from keras import layers
+from tensorflow import keras
+from sklearn.metrics import confusion_matrix
+
+(x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+
+plt.figure(figsize=(10, 4))
+for i in range(10):
+    plt.subplot(2, 5, i+1)
+    plt.imshow(x_train[i], cmap='gray')
+    plt.title(f"Labela: {y_train[i]}")
+    plt.axis('off')
+plt.tight_layout()
+plt.show()
+
+x_train_s = x_train.astype("float32") / 255
+x_test_s = x_test.astype("float32") / 255
+x_train_s = x_train_s.reshape(60000, 784)
+x_test_s = x_test_s.reshape(10000, 784)
+y_train_s = keras.utils.to_categorical(y_train, 10)
+y_test_s = keras.utils.to_categorical(y_test, 10)
+
+# TODO: Kreiraj mrežu
+model = keras.Sequential([
+    layers.Dense(128, activation='relu', input_shape=(784,)),
+    layers.Dropout(0.2),
+    layers.Dense(64, activation='relu'),
+    layers.Dense(10, activation='softmax')
+])
+
+# Prikaz strukture mreže
+model.summary()
+
+# TODO: Definiraj karakteristike procesa učenja
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+# TODO: Treniranje mreže
+history = model.fit(x_train_s, y_train_s, epochs=10,
+                    batch_size=32, validation_split=0.1)
+
+# TODO: Izračunaj točnost mreže
+train_loss, train_acc = model.evaluate(x_train_s, y_train_s, verbose=0)
+test_loss, test_acc = model.evaluate(x_test_s, y_test_s, verbose=0)
+
+print(f"\nTočnost na trening skupu: {train_acc:.4f}")
+print(f"Točnost na testnom skupu: {test_acc:.4f}")
+
+# TODO: Matrica zabune
+y_pred_probs = model.predict(x_test_s)
+y_pred = np.argmax(y_pred_probs, axis=1)
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues")
+plt.xlabel("Predviđene vrijednosti")
+plt.ylabel("Stvarne vrijednosti")
+plt.title("Matrica zabune")
+plt.show()
+
+# TODO: Prikaz nekoliko pogrešno klasificiranih primjera
+incorrect_indices = np.where(y_pred != y_test)[0]
+
+plt.figure(figsize=(12, 6))
+for i, idx in enumerate(incorrect_indices[:10]):
+    plt.subplot(2, 5, i + 1)
+    plt.imshow(x_test[idx], cmap='gray')
+    plt.title(f"Stvarno: {y_test[idx]}\nPredviđeno: {y_pred[idx]}")
+    plt.axis('off')
+plt.tight_layout()
+plt.show()
