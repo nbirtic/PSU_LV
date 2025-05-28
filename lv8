@@ -1,0 +1,90 @@
+import tensorflow as tf
+from tensorflow.keras import layers, models, callbacks
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Funkcija za pripremu podataka
+def prepare_data():
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+    x_train, x_test = x_train / 255.0, x_test / 255.0
+    x_train = x_train[..., tf.newaxis]
+    x_test = x_test[..., tf.newaxis]
+    return (x_train, y_train), (x_test, y_test)
+
+# Funkcija za izgradnju modela
+def build_model():
+    model = models.Sequential([
+        layers.Conv2D(32, kernel_size=3, activation='relu', input_shape=(28, 28, 1)),
+        layers.MaxPooling2D(pool_size=2),
+
+        layers.Conv2D(64, kernel_size=3, activation='relu'),
+        layers.MaxPooling2D(pool_size=2),
+
+        layers.Conv2D(64, kernel_size=3, activation='relu'),
+
+        layers.Flatten(),
+        layers.Dense(64, activation='relu'),
+        layers.Dense(10, activation='softmax')
+    ])
+    model.compile(optimizer='adam',
+                  loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
+    return model
+
+# Funkcija za prikaz matrice zabune
+def plot_conf_matrix(cm, title):
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+                xticklabels=range(10), yticklabels=range(10))
+    plt.title(title)
+    plt.xlabel('Prediktivna Klasa')
+    plt.ylabel('Stvarna Klasa')
+    plt.show()
+
+# Priprema podataka
+(x_train, y_train), (x_test, y_test) = prepare_data()
+
+# Izgradnja modela
+model = build_model()
+
+# Callback funkcije
+log_dir = "./logs"
+tensorboard_cb = callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+checkpoint_cb = callbacks.ModelCheckpoint(
+    filepath='best_model.h5',
+    monitor='val_accuracy',
+    mode='max',
+    save_best_only=True,
+    verbose=1
+)
+
+# Treniranje modela
+history = model.fit(
+    x_train, y_train,
+    validation_split=0.1,
+    epochs=10,
+    callbacks=[tensorboard_cb, checkpoint_cb]
+)
+
+# Učitavanje najboljeg modela
+best_model = tf.keras.models.load_model('best_model.h5')
+
+# Evaluacija modela
+train_loss, train_acc = best_model.evaluate(x_train, y_train)
+print(f'Točnost na skupu za učenje: {train_acc:.4f}')
+
+test_loss, test_acc = best_model.evaluate(x_test, y_test)
+print(f'Točnost na skupu za testiranje: {test_acc:.4f}')
+
+# Predikcija i matrice zabune
+y_train_pred_classes = best_model.predict(x_train).argmax(axis=1)
+y_test_pred_classes = best_model.predict(x_test).argmax(axis=1)
+
+train_cm = confusion_matrix(y_train, y_train_pred_classes)
+test_cm = confusion_matrix(y_test, y_test_pred_classes)
+
+# Prikaz rezultata
+plot_conf_matrix(train_cm, "Matrica zabune - skup za učenje")
+plot_conf_matrix(test_cm, "Matrica zabune - skup za testiranje")
